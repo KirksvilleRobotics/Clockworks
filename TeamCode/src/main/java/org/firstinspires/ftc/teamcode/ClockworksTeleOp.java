@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="Basic: Iterative OpMode", group="Iterative Opmode")
-public class TeleOp extends OpMode {
+public class ClockworksTeleOp extends OpMode {
 
     private DcMotor leftDrive, rightDrive;
     private Servo jewelPitch, jewelYaw, glyphPusher;
@@ -48,15 +48,14 @@ public class TeleOp extends OpMode {
         //Left Stick - power controlled by stick pos
         //THRESHOLD is because the joysticks are never perfect
         if(gamepad1.left_stick_y > THRESHOLD || gamepad1.left_stick_y < -THRESHOLD){
-            leftDrive.setPower(gamepad1.left_stick_y); //TODO convert
-        }
+            motorPID(leftDrive, gamepad1.right_stick_y); //TODO convert
+        } else motorPID(leftDrive, gamepad1.right_stick_y);
 
         //Right Stick - power controlled by stick pos
         //THRESHOLD is because the joysticks are never perfect
         if(gamepad1.right_stick_y > THRESHOLD || gamepad1.right_stick_y < -THRESHOLD){
-            rightDrive.setPower(gamepad1.right_stick_y); //TODO convert
-        }
-
+            motorPID(rightDrive, gamepad1.right_stick_y); //TODO convert
+        } else motorPID(rightDrive, 0);
         // A Button - gradual acceleration
         // only accelerates again after A has been pressed OR released.
         if(gamepad1.a && aAvailable){ ///0.0 - 1.0
@@ -96,19 +95,26 @@ public class TeleOp extends OpMode {
         }
 
         //A - Glyph Grabber
+        if(gamepad1.a){
+
+        }
         //B - Glyph Release
+        if(gamepad2.b){
+
+        }
 
         motorPID(leftDrive, tarSpeed);
         motorPID(rightDrive, tarSpeed);
     }
 
-    public void motorPID(DcMotor m, double tarSpeed){
+    private void motorPID(DcMotor m, double tarSpeed){
+
         double currentVel = (m.getCurrentPosition() - pastPos) / (System.currentTimeMillis() - pastTimeMillis);
 
         double error = currentVel - tarSpeed;
 
         double p = (currentVel - tarSpeed);
-        double i = (pastIng + ( error * (System.currentTimeMillis() - pastTimeMillis)));
+        double i = (pastIng + (error * (System.currentTimeMillis() - pastTimeMillis)));
         double d = (pastErr - error) / (System.currentTimeMillis() - pastTimeMillis);
 
         m.setPower(crunch((KP*p) + (KI*i) + (KD*d)));
@@ -119,7 +125,7 @@ public class TeleOp extends OpMode {
         pastTimeMillis = System.currentTimeMillis();
     }
 
-    public double crunch(double power){
+    private double crunch(double power){
         if(power > 1.0) {
             return 1.0;
         }else if(power < 0.0){
