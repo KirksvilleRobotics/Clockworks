@@ -3,11 +3,12 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="Basic: Iterative OpMode", group="Iterative Opmode")
+@TeleOp(name = "Clockworks TeleOp")
 public class ClockworksTeleOp extends OpMode {
 
     private DcMotor leftDrive, rightDrive;
@@ -23,8 +24,9 @@ public class ClockworksTeleOp extends OpMode {
     private long pastTimeMillis = System.currentTimeMillis();
     private double pastErr = 0;
     private double pastPos = 0;
-    private double pastIng = 0;
-    private double tarSpeed  = 0;
+    private double integral = 0;
+    private double leftSpeed  = 0.0;
+    private double rightSpeed = 0.0;
 
     @Override
     public void init() {
@@ -48,42 +50,37 @@ public class ClockworksTeleOp extends OpMode {
         //Left Stick - power controlled by stick pos
         //THRESHOLD is because the joysticks are never perfect
         if(gamepad1.left_stick_y > THRESHOLD || gamepad1.left_stick_y < -THRESHOLD){
-            motorPID(leftDrive, gamepad1.right_stick_y); //TODO convert
-        } else motorPID(leftDrive, gamepad1.right_stick_y);
+            telemetry.addData("StickPos:", gamepad1.left_stick_y);
+            leftSpeed = (double)(gamepad1.left_stick_y+128)/256;
+            leftDrive.setPower((double)(gamepad1.left_stick_y+128)/256); //temp
+        } else {
+            leftSpeed = 0.0;
+            leftDrive.setPower(0.0); //temp till PID works
+        }
 
         //Right Stick - power controlled by stick pos
         //THRESHOLD is because the joysticks are never perfect
         if(gamepad1.right_stick_y > THRESHOLD || gamepad1.right_stick_y < -THRESHOLD){
-            motorPID(rightDrive, gamepad1.right_stick_y); //TODO convert
-        } else motorPID(rightDrive, 0);
+            telemetry.addData("StickPos:", gamepad1.right_stick_y);
+            rightSpeed = (double)(gamepad1.right_stick_y+128)/256;
+            rightDrive.setPower((double)(gamepad1.right_stick_y+128)/256); //temp
+
+        } else {
+            rightSpeed = (double)(gamepad1.right_stick_y+128)/256;
+            rightDrive.setPower(0.0); //temp till PID works
+        }
+
         // A Button - gradual acceleration
         // only accelerates again after A has been pressed OR released.
         if(gamepad1.a && aAvailable){ ///0.0 - 1.0
-            /*for(int i = 1; i <= 10; i++){
-                leftDrive.setPower((double)(i*0.1));
-                rightDrive.setPower((double)(i*0.1));
-                try {
-                    wait(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }*/
-            tarSpeed = 0.0; //TODO quarter degrees per millisecond
+            leftSpeed = 0.75;
+            rightSpeed = 0.0;
             aAvailable = false;
         }
 
         if(!gamepad1.a && !(aAvailable)){
-            /*for(int i = 10; i >= 1; i-=2){
-                leftDrive.setPower((double)(i*0.1));
-                rightDrive.setPower((double)(i*0.1));
-                try {
-                    wait(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-            }*/
-            tarSpeed = 0.0; //TODO quarter degrees per millisecond
+            leftSpeed = 0.0;
+            rightSpeed = 0.0;
             aAvailable = true;
         }
 
@@ -103,35 +100,42 @@ public class ClockworksTeleOp extends OpMode {
 
         }
 
-        motorPID(leftDrive, tarSpeed);
-        motorPID(rightDrive, tarSpeed);
+        //motorPID(leftDrive, toQDPM(leftSpeed));
+        //motorPID(rightDrive, toQDPM(rightSpeed));
     }
 
-    private void motorPID(DcMotor m, double tarSpeed){
+    private void motorPID(DcMotor m, double tarVel){
 
-        double currentVel = (m.getCurrentPosition() - pastPos) / (System.currentTimeMillis() - pastTimeMillis);
+        //Get the current velocity based on current and past motor positions and elapsed time
+        double vel = (m.getCurrentPosition() - pastPos) / (System.currentTimeMillis() - pastTimeMillis);
 
-        double error = currentVel - tarSpeed;
+        //Get the difference between current velocity and the velocity we want to get to
+        double error = tarVel - vel;
 
-        double p = (currentVel - tarSpeed);
-        double i = (pastIng + (error * (System.currentTimeMillis() - pastTimeMillis)));
-        double d = (pastErr - error) / (System.currentTimeMillis() - pastTimeMillis);
+        double p = (vel - tarVel);
+        integral = (integral + (error * (System.currentTimeMillis() - pastTimeMillis)));
+        double derivative = (pastErr - error) / (System.currentTimeMillis() - pastTimeMillis);
 
-        m.setPower(crunch((KP*p) + (KI*i) + (KD*d)));
+        m.setPower(crunch((KP*p) + (KI*integral) + (KD*derivative), 1.0, 0.0));
 
         pastPos = m.getCurrentPosition();
         pastErr = error;
-        pastIng = i;
+
         pastTimeMillis = System.currentTimeMillis();
     }
 
-    private double crunch(double power){
-        if(power > 1.0) {
-            return 1.0;
-        }else if(power < 0.0){
-            return 0.0;
+    private double crunch(double power, double max, double min){
+        if(power > max) {
+            return max;
+        }else if(power < min){
+            return min;
         }else {
             return power;
         }
+    }
+
+    private double toQDPM(double percentage){
+        //152rpm is 100% motor power
+        return (152*percentage*360*4)/60;
     }
 }
