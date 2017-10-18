@@ -12,9 +12,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class ClockworksTeleOp extends OpMode {
 
     private DcMotor leftDrive, rightDrive;
+    private double leftSpeed, rightSpeed  = 0.0;
+
     private Servo jewelPitch, jewelYaw, glyphPusher;
     
-    private final double THRESHOLD = 10;
+    private final double THRESHOLD = 5;
     private boolean aAvailable = true;
 
     private final double KP = 0.1; //TODO Calculate values
@@ -25,8 +27,7 @@ public class ClockworksTeleOp extends OpMode {
     private double pastErr = 0;
     private double pastPos = 0;
     private double integral = 0;
-    private double leftSpeed  = 0.0;
-    private double rightSpeed = 0.0;
+
 
     @Override
     public void init() {
@@ -51,22 +52,22 @@ public class ClockworksTeleOp extends OpMode {
         //THRESHOLD is because the joysticks are never perfect
         if(gamepad1.left_stick_y > THRESHOLD || gamepad1.left_stick_y < -THRESHOLD){
             telemetry.addData("StickPos:", gamepad1.left_stick_y);
-            leftSpeed = (double)(gamepad1.left_stick_y+128)/256;
+            //leftSpeed = (double)(gamepad1.left_stick_y+128)/256;
             leftDrive.setPower((double)(gamepad1.left_stick_y+128)/256); //temp
         } else {
-            leftSpeed = 0.0;
-            leftDrive.setPower(0.0); //temp till PID works
+            //leftSpeed = 0.0;
+            leftDrive.setPower(0.0);//temp till PID works
         }
 
         //Right Stick - power controlled by stick pos
         //THRESHOLD is because the joysticks are never perfect
         if(gamepad1.right_stick_y > THRESHOLD || gamepad1.right_stick_y < -THRESHOLD){
             telemetry.addData("StickPos:", gamepad1.right_stick_y);
-            rightSpeed = (double)(gamepad1.right_stick_y+128)/256;
+            //rightSpeed = (double)(gamepad1.right_stick_y+128)/256;
             rightDrive.setPower((double)(gamepad1.right_stick_y+128)/256); //temp
 
         } else {
-            rightSpeed = (double)(gamepad1.right_stick_y+128)/256;
+            //rightSpeed = (double)(gamepad1.right_stick_y+128)/256;
             rightDrive.setPower(0.0); //temp till PID works
         }
 
@@ -74,7 +75,7 @@ public class ClockworksTeleOp extends OpMode {
         // only accelerates again after A has been pressed OR released.
         if(gamepad1.a && aAvailable){ ///0.0 - 1.0
             leftSpeed = 0.75;
-            rightSpeed = 0.0;
+            rightSpeed = 0.75;
             aAvailable = false;
         }
 
@@ -100,8 +101,8 @@ public class ClockworksTeleOp extends OpMode {
 
         }
 
-        //motorPID(leftDrive, toQDPM(leftSpeed));
-        //motorPID(rightDrive, toQDPM(rightSpeed));
+        //motorPID(leftDrive, toQDPS(leftSpeed));
+        //motorPID(rightDrive, toQDPS(rightSpeed));
     }
 
     private void motorPID(DcMotor m, double tarVel){
@@ -112,7 +113,7 @@ public class ClockworksTeleOp extends OpMode {
         //Get the difference between current velocity and the velocity we want to get to
         double error = tarVel - vel;
 
-        double p = (vel - tarVel);
+        double p = vel - tarVel;
         integral = (integral + (error * (System.currentTimeMillis() - pastTimeMillis)));
         double derivative = (pastErr - error) / (System.currentTimeMillis() - pastTimeMillis);
 
@@ -125,16 +126,16 @@ public class ClockworksTeleOp extends OpMode {
     }
 
     private double crunch(double power, double max, double min){
-        if(power > max) {
+        if(power >= max) {
             return max;
-        }else if(power < min){
+        }else if(power <= min){
             return min;
         }else {
             return power;
         }
     }
 
-    private double toQDPM(double percentage){
+    private double toQDPS(double percentage){
         //152rpm is 100% motor power
         return (152*percentage*360*4)/60;
     }
