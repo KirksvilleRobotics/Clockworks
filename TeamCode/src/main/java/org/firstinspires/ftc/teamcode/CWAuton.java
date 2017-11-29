@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
@@ -23,9 +24,16 @@ public abstract class CWAuton extends LinearOpMode{
     // This is a class for the more specific auton programs to borrow methods from.
 
     private DcMotor leftDrive, rightDrive, glyphLift;
+    private TouchSensor liftAlert;
+    private static final double DEG_PER_REV = 1440; //technically quarter-degrees
+    private static final double GEAR_RATIO = 1.0;
+    private static final double WHEEL_DIAM = 4.0; //in inches
+    private static final double DEG_PER_INCH = (DEG_PER_REV * GEAR_RATIO) / (WHEEL_DIAM * Math.PI);
+    private static final double DRIVE_SPEED = 0.75;
+    private static final double TURN_SPEED = 0.5;
+
     private Servo jewelPitch, jewelYaw, glyphPusher, leftGlyphGrabber, rightGlyphGrabber;
     private VuforiaLocalizer vuforia;
-    private TouchSensor liftAlert;
     private VuforiaTrackable relicTemplate;
 
     public void runOpMode(){
@@ -60,6 +68,42 @@ public abstract class CWAuton extends LinearOpMode{
 
         //Woot
         telemetry.addData("Initialized", "Yay");
+    }
+
+    // distances should be in inches
+    // speed should usually be a constant
+    public void encoderDrive(double rightDis, double leftDis, double speed){
+
+        // the distance the encoders will run in 1/4 degrees
+        int leftTar = leftDrive.getCurrentPosition() + (int)(leftDis * DEG_PER_INCH);
+        int rightTar = rightDrive.getCurrentPosition() + (int)(rightDis * DEG_PER_INCH);
+
+        // put targets into encoders
+        leftDrive.setTargetPosition(leftTar);
+        rightDrive.setTargetPosition(rightTar);
+
+        // encoders will run till there target is met
+        leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // go!
+        leftDrive.setPower(speed);
+        rightDrive.setPower(speed);
+
+        // loop while robot is moving
+        while(opModeIsActive() && (leftDrive.isBusy() || rightDrive.isBusy())) {
+            telemetry.addData("Left running to:", leftDis);
+            telemetry.addData("Right running to:", rightDis);
+            telemetry.update();
+        }
+
+        // stop
+        leftDrive.setPower(0.0);
+        rightDrive.setPower(0.0);
+
+        // switch to turn off RUN_TO_POSITION
+        leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void knockJewel(){
