@@ -11,8 +11,8 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import static com.sun.tools.javac.util.Constants.format;
 
-@TeleOp(name = "Main TeleOp")
-public class CWTeleOpPID extends OpMode {
+@TeleOp(name = "Main")
+public class CWTeleOp extends OpMode {
 
     private DcMotor leftDrive, rightDrive, glyphLift;
     private Servo jewelPitch, jewelYaw, upperLeftGlyphGrabber, upperRightGlyphGrabber, lowerLeftGlyphGrabber, lowerRightGlyphGrabber;
@@ -29,7 +29,7 @@ public class CWTeleOpPID extends OpMode {
 
     private int loop = 0;
 
-    private final double THRESHOLD = 0.1;
+    private final double THRESHOLD = 0.05;
 
     private long pastTimeMillis = System.currentTimeMillis();
 
@@ -279,6 +279,7 @@ public class CWTeleOpPID extends OpMode {
     // hier drachen sein
     private void motorPID(PIDMotor m, double tarVel) {
         /*
+
         //The fastest velocity we can get is about 3.6 QD/ms.
         tarVel *= 3.6;
 
@@ -319,5 +320,4 @@ public class CWTeleOpPID extends OpMode {
             return power;
         }
     }
-
 }
