@@ -24,7 +24,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 @Autonomous(name = "Base Autonomous")
 @Disabled
 public abstract class CWAuton extends LinearOpMode{
-    // THIS CLASS SHOULD NOT BE RUN!
+    // THIS CLASS SHOULD NOT BE RUN
     // This is a class for the more specific auton programs to borrow methods from.
 
     private DcMotor leftDrive, rightDrive, glyphWinch;
