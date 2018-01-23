@@ -28,12 +28,15 @@ public abstract class CWAuton extends LinearOpMode{
     // This is a class for the more specific auton programs to borrow methods from.
 
     private DcMotor leftDrive, rightDrive, glyphWinch;
-    private ColorSensor jewelCol;
+    ColorSensor jewelCol;
     private static final double ROBOT_DIAM = 12.5;
     private static final double DEG_PER_REV = 1440; //technically quarter-degrees
     private static final double GEAR_RATIO = 1.0;
     private static final double WHEEL_DIAM = 4.0; //in inches
     private static final double DEG_PER_INCH = (DEG_PER_REV * GEAR_RATIO) / (WHEEL_DIAM * Math.PI);
+
+    protected static final byte RED = 0;
+    protected static final byte BLUE = 1;
 
     public Servo jewelPitch, jewelYaw, glyphPusher, leftGlyphGrabber, rightGlyphGrabber;
     private VuforiaLocalizer vuforia;
@@ -61,6 +64,7 @@ public abstract class CWAuton extends LinearOpMode{
         jewelPitch = hardwareMap.get(Servo.class, "jewelPitch");
         jewelYaw = hardwareMap.get(Servo.class, "jewelYaw");
         glyphWinch = hardwareMap.get(DcMotor.class, "glyphLift");
+        jewelCol = hardwareMap.get(ColorSensor.class, "jewelCol");
 
         //So directions will be the same for both motors
         rightDrive.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -96,10 +100,15 @@ public abstract class CWAuton extends LinearOpMode{
         rightDrive.setPower(speed);
 
         // loop while robot is moving
-        while(opModeIsActive() && (leftDrive.isBusy() || rightDrive.isBusy())) {
+        while(leftDrive.isBusy() || rightDrive.isBusy()) {
             telemetry.addData("Left running to:", leftDis);
             telemetry.addData("Right running to:", rightDis);
             telemetry.update();
+            if(! opModeIsActive()) {
+                leftDrive.setPower(0);
+                rightDrive.setPower(0);
+                break;
+            }
         }
 
         // stop
@@ -115,25 +124,57 @@ public abstract class CWAuton extends LinearOpMode{
         return ROBOT_DIAM * Math.PI * frac;
     }
 
-    //TODO
-    public boolean detectJewel(){
+    public void jewelRoutine(int color) {
+        //Put the jewel stick in the up position
+        jewelYaw.setPosition(0.5);
+        jewelPitch.setPosition(0.0);
 
-        jewelPitch.setPosition(2); //TODO
-        jewelYaw.setPosition(2); //TODO
-        boolean red = false;
-        if(jewelCol.red()>jewelCol.blue()){
-            red = true;
+        //Drive towards the jewels
+        encoderDrive(-2.5, -2.5, 0.50);
+
+        //Put the jewel stick in the down middle position
+        jewelPitch.setPosition(0.5);
+        jewelYaw.setPosition(1.0);
+
+        //Put the stick in the left position and measure the redness of the left jewel
+        jewelPitch.setPosition(0.4);
+        sleep(1000);
+        int leftRedness = jewelCol.red();
+        telemetry.addData("Left redness", leftRedness);
+
+        //Put the stick in the right position and measure the redness of the right jewel
+        jewelPitch.setPosition(0.6);
+        sleep(1000);
+        int rightRedness = jewelCol.red();
+        telemetry.addData("Right redness", rightRedness);
+
+        //Put the stick in the middle position again
+        jewelPitch.setPosition(0.5);
+        sleep(1000);
+
+        //Drive backwards
+        encoderDrive(4, 4, 1.0);
+        sleep(1000);
+
+        //Put the stick in the upside down position
+        jewelYaw.setPosition(0.0);
+        sleep(1000);
+        //Drive forward
+        encoderDrive(-4, -4, 1.0);
+
+        if(color == RED) {
+            //Knock over the correct jewel
+            if (leftRedness < rightRedness) jewelPitch.setPosition(0.8);
+            if (rightRedness < leftRedness) jewelPitch.setPosition(0.2);
+        } else if(color == BLUE) {
+            if (leftRedness > rightRedness) jewelPitch.setPosition(0.8);
+            if (rightRedness > leftRedness) jewelPitch.setPosition(0.2);
         }
 
-        return red;
-    }
+        sleep(1000);
 
-    public boolean colorIsRed() {
-        float[] hsvValues = {0.0f, 0.0f, 0.0f};
-        Color.RGBToHSV(jewelCol.red() * 8, jewelCol.green() * 8, jewelCol.blue() * 8, hsvValues);
-        if (hsvValues[0] > 0 && hsvValues[0] < 15) {
-            return true;
-        }
-        return false;
+        jewelYaw.setPosition(0.5);
+        sleep(1000);
+        jewelPitch.setPosition(0.0);
     }
 }

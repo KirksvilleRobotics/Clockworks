@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Color;
 import android.text.method.Touch;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -17,7 +19,7 @@ public class CWTeleOp extends OpMode {
     private DcMotor leftDrive, rightDrive, glyphLift;
     private Servo jewelPitch, jewelYaw, upperLeftGlyphGrabber, upperRightGlyphGrabber, lowerLeftGlyphGrabber, lowerRightGlyphGrabber;
 
-    private TouchSensor liftAlert;
+    private ColorSensor jewelCol;
     private boolean x1Available = true;
     private boolean y1Available = true;
     private boolean leftBumper1Available = true;
@@ -74,10 +76,13 @@ public class CWTeleOp extends OpMode {
         upperRightGlyphGrabber = hardwareMap.get(Servo.class, "upperRight");
         lowerLeftGlyphGrabber = hardwareMap.get(Servo.class, "lowerLeft");
         lowerRightGlyphGrabber = hardwareMap.get(Servo.class, "lowerRight");
-        liftAlert = hardwareMap.get(TouchSensor.class, "liftAlert");
+        jewelCol = hardwareMap.get(ColorSensor.class, "jewelCol");
 
         //So directions will be the same for both motors
         rightDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        //turn led off
+        jewelCol.enableLed(true);
 
         leftDrivePID = new PIDMotor(leftDrive);
         rightDrivePID = new PIDMotor(rightDrive);
@@ -274,6 +279,20 @@ public class CWTeleOp extends OpMode {
             glyphLift.setPower(liftSpeed);
             telemetry.addData("PID Mode", " disabled");
         }
+
+        telemetry.addData("Red", jewelCol.red());
+        telemetry.addData("Green", jewelCol.green());
+        telemetry.addData("Blue", jewelCol.blue());
+
+//
+//        // COLOR TESTING
+//        float[] hsvValues = {0.0f, 0.0f, 0.0f};
+//        Color.RGBToHSV(jewelCol.red() * 8, jewelCol.green() * 8, jewelCol.blue() * 8, hsvValues);
+//        if (hsvValues[0] > 0 && hsvValues[0] < 15) {
+//            telemetry.addData("Col: ", "RED");
+//        }else{
+//            telemetry.addData("Col: ", "!RED");
+//        }
     }
 
     // hier drachen sein
