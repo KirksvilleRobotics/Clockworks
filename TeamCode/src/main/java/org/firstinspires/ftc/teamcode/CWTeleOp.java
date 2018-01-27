@@ -82,7 +82,7 @@ public class CWTeleOp extends OpMode {
         rightDrive.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //turn led off
-        jewelCol.enableLed(true);
+        jewelCol.enableLed(false);
 
         leftDrivePID = new PIDMotor(leftDrive);
         rightDrivePID = new PIDMotor(rightDrive);
@@ -90,6 +90,9 @@ public class CWTeleOp extends OpMode {
 
         //Woot
         telemetry.addData("Initialized", "Yay");
+
+        jewelYaw.setPosition(0.5);
+        jewelPitch.setPosition(0.0);
     }
 
     @Override
@@ -205,6 +208,14 @@ public class CWTeleOp extends OpMode {
         //It turns out that it's nice to have a little extra in both positions, for various reasons.
 
 
+        //Controls for GLYPH LIFT MOTOR (gamepad 2 X & Y)
+        telemetry.addData("X", gamepad2.x);
+        if (gamepad2.x) {
+            liftSpeed = 1.0;
+        } else if (gamepad2.y) {
+            liftSpeed = -1.0;
+        } else liftSpeed = 0.0;
+
         //Controls for GLYPH GRABBERS, LEFT AND RIGHT (gamepad 2 A & B)
         if (gamepad2.a) { //Grab
             upperLeftGlyphGrabber.setPosition(0.0);
@@ -218,13 +229,17 @@ public class CWTeleOp extends OpMode {
             lowerLeftGlyphGrabber.setPosition(0.8);
         }
 
+        //Individual controls for GLYPH GRABBERS
+        if(gamepad2.dpad_up) {
+            upperLeftGlyphGrabber.setPosition(1 - gamepad2.left_trigger);
+            upperRightGlyphGrabber.setPosition(gamepad2.right_trigger);
+        }
+        if(gamepad2.dpad_down) {
+            lowerLeftGlyphGrabber.setPosition(1 - gamepad2.left_trigger);
+            lowerRightGlyphGrabber.setPosition(1 - gamepad2.right_trigger);
+        }
 
-        //Controls for GLYPH LIFT MOTOR (gamepad 2 X & Y)
-        if (gamepad2.x) {
-            liftSpeed = 1.0;
-        } else if (gamepad2.y) {
-            liftSpeed = -1.0;
-        } else liftSpeed = 0.0;
+
 
         //OTHER STUFF
 

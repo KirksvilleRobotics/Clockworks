@@ -73,7 +73,7 @@ public abstract class CWAuton extends LinearOpMode{
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         final View relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
         jewelCol = hardwareMap.get(ColorSensor.class, "jewelCol");
-        jewelCol.enableLed(true);
+        jewelCol.enableLed(false);
 
         //Woot
         telemetry.addData("Initialized", "Yay");
@@ -136,6 +136,8 @@ public abstract class CWAuton extends LinearOpMode{
         jewelPitch.setPosition(0.5);
         jewelYaw.setPosition(1.0);
 
+        jewelCol.enableLed(true);
+
         //Put the stick in the left position and measure the redness of the left jewel
         jewelPitch.setPosition(0.4);
         sleep(1000);
@@ -152,15 +154,18 @@ public abstract class CWAuton extends LinearOpMode{
         jewelPitch.setPosition(0.5);
         sleep(1000);
 
+        jewelCol.enableLed(false);
+
         //Drive backwards
-        encoderDrive(4, 4, 1.0);
+        encoderDrive(2, 2, 0.4);
         sleep(1000);
 
         //Put the stick in the upside down position
         jewelYaw.setPosition(0.0);
         sleep(1000);
+
         //Drive forward
-        encoderDrive(-4, -4, 1.0);
+        encoderDrive(-2, -2, 1.0);
 
         if(color == RED) {
             //Knock over the correct jewel
