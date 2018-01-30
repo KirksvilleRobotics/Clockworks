@@ -1,17 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.graphics.Color;
-import android.text.method.Touch;
-
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 
-import static com.sun.tools.javac.util.Constants.format;
 
 @TeleOp(name = "Main")
 public class CWTeleOp extends OpMode {
@@ -44,7 +39,7 @@ public class CWTeleOp extends OpMode {
         double pastPos = 0;
         double pastIntegral = 0;
         double pastTime = 0;
-        private double kp = 0.1; //TODO Calculate values
+        private double kp = 0.1; // TODO Calculate values
         private double ki = 0.1; // FILLER
         private double kd = 0.1; // FILLER
         DcMotor motor;
@@ -239,8 +234,6 @@ public class CWTeleOp extends OpMode {
             lowerRightGlyphGrabber.setPosition(1 - gamepad2.right_trigger);
         }
 
-
-
         //OTHER STUFF
 
         //Add telemetry data
@@ -299,8 +292,7 @@ public class CWTeleOp extends OpMode {
         telemetry.addData("Green", jewelCol.green());
         telemetry.addData("Blue", jewelCol.blue());
 
-//
-//        // COLOR TESTING
+        // COLOR TESTING
 //        float[] hsvValues = {0.0f, 0.0f, 0.0f};
 //        Color.RGBToHSV(jewelCol.red() * 8, jewelCol.green() * 8, jewelCol.blue() * 8, hsvValues);
 //        if (hsvValues[0] > 0 && hsvValues[0] < 15) {

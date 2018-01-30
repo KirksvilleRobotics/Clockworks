@@ -2,10 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-/**
- * Created by yearbook on 1/24/18.
- */
-
 @Autonomous(name="Blue Near")
 public class CWAutonBlueNear extends CWAuton {
 
